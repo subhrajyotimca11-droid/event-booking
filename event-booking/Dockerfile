@@ -34,7 +34,7 @@ RUN npm install
 # Build Vite assets
 RUN npm run build
 
-# Enable Apache rewrite module
+# Enable Apache rewrite
 RUN a2enmod rewrite
 
 # Configure Apache Document Root
@@ -53,6 +53,21 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 RUN mkdir -p storage/framework storage/logs bootstrap/cache && \
     chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
+
+# -----------------------------
+# Laravel setup
+# -----------------------------
+RUN cp .env.example .env || true
+RUN php artisan key:generate --force || true
+
+# Clear caches
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true
+RUN php artisan route:clear || true
+RUN php artisan view:clear || true
+
+# Create storage symlink
+RUN php artisan storage:link || true
 
 EXPOSE 80
 
